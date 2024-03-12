@@ -35,6 +35,7 @@ entity rbbs is
 end rbbs;
 
 architecture behavior of rbbs is
+    signal clk: std_logic := '0';
     signal priority: std_logic_vector(1 downto 0);
     signal priority_reg: std_logic_vector(1 downto 0);
     signal priority_plus_one: std_logic_vector(1 downto 0);
@@ -51,6 +52,12 @@ architecture behavior of rbbs is
     signal req_ord_0, req_ord_1, req_ord_2, req_ord_3: std_logic;
 
 begin
+    clock: process
+    begin
+        wait for 10 ns;
+        clk <= not clk;
+    end process;
+
     -- requests enters
 
     -- requests priority ordenation top down
@@ -120,14 +127,14 @@ begin
     served <= served_desord_0 & served_desord_1 & served_desord_2 & served_desord_3;
 
     -- priority and served write process
-    registers: process (rst, not_mux_out)
+    registers: process (clk, rst, not_mux_out)
 
     begin
         if (rst = '1') then
             priority_reg <= "00";
             served_reg <= "0000";
 
-        elsif (not_mux_out = '1') then
+        elsif (clk'event and not_mux_out = '1') then
             if (served_reg = "0000") then
                 served_reg <= served;
             
@@ -181,9 +188,9 @@ begin
         (others => '0')  when others;
 
     -- requested signals
-    requested_0 <= served_reg(0);
-    requested_1 <= served_reg(1);
-    requested_2 <= served_reg(2);
-    requested_3 <= served_reg(3);
+    requested_0 <= served_reg(3);
+    requested_1 <= served_reg(2);
+    requested_2 <= served_reg(1);
+    requested_3 <= served_reg(0);
 
 end behavior;
